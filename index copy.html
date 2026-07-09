@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>List Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&display=block" rel="stylesheet">
+<style>
+  :root {
+    --sidebar: #14171F;
+    --sidebar-hover: #1E222D;
+    --sidebar-text: #9299AB;
+    --sidebar-text-active: #FFFFFF;
+    --bg: #F4F5F7;
+    --card: #FFFFFF;
+    --ink: #1A1D24;
+    --sub: #6B7280;
+    --muted: #9CA3AF;
+    --line: #E6E8EC;
+    --accent: #4F46E5;
+    --accent-hover: #4338CA;
+    --accent-light: #EEF0FF;
+    --accent-dark: #362FA0;
+    --teal: #0D9488;
+    --teal-light: #E6F7F5;
+    --teal-dark: #0B5F58;
+    --amber: #B45309;
+    --amber-light: #FEF3E2;
+    --amber-line: #F0B84D;
+    --danger: #DC2626;
+    --danger-light: #FEEBEB;
+    --radius: 10px;
+    --radius-lg: 14px;
+    --shadow: 0 1px 2px rgba(16,24,40,0.04), 0 1px 3px rgba(16,24,40,0.06);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    display: flex;
+    min-height: 100vh;
+  }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20; font-size: 20px; line-height: 1; vertical-align: -4px; }
+
+  /* Sidebar */
+  .sidebar {
+    width: 220px; flex-shrink: 0; background: var(--sidebar); color: var(--sidebar-text);
+    padding: 20px 14px; position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; padding: 6px 10px 22px; color: #fff; }
+  .brand .mark { width: 30px; height: 30px; border-radius: 8px; background: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; }
+  .brand span.title { font-weight: 600; font-size: 15px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: 9px;
+    color: var(--sidebar-text); font-size: 14px; font-weight: 500; cursor: pointer; margin-bottom: 2px;
+    border-left: 2px solid transparent;
+  }
+  .nav-item:hover { background: var(--sidebar-hover); color: #fff; }
+  .nav-item.active { background: var(--sidebar-hover); color: var(--sidebar-text-active); border-left: 2px solid var(--accent); }
+  .nav-spacer { flex: 1; }
+  .sidebar-foot { font-size: 12px; color: #565D6E; padding: 10px; }
+
+  /* Main */
+  .main { flex: 1; min-width: 0; padding: 32px 40px 80px; }
+  .page-head { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 26px; flex-wrap: wrap; gap: 12px; }
+  .page-head h1 { font-size: 24px; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+  .page-head p { margin: 4px 0 0; color: var(--sub); font-size: 14px; }
+  .page { display: none; }
+  .page.active { display: block; }
+  .icon-btn { border: 1px solid var(--line); background: var(--card); border-radius: 8px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--sub); }
+  .icon-btn:hover { background: #F9FAFB; color: var(--ink); }
+
+  /* Cards */
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 22px 24px; box-shadow: var(--shadow); }
+
+  /* Metric grid */
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 24px; }
+  .metric { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 18px 20px; box-shadow: var(--shadow); }
+  .metric .m-label { font-size: 12.5px; color: var(--sub); font-weight: 500; display: flex; align-items: center; gap: 6px; }
+  .metric .m-value { font-size: 28px; font-weight: 700; margin-top: 8px; letter-spacing: -0.02em; }
+
+  .section-title { font-weight: 600; font-size: 15px; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+
+  /* Form */
+  label.f-label { display: block; font-size: 13px; font-weight: 600; color: #3F4451; margin: 16px 0 6px; }
+  label.f-label:first-child { margin-top: 0; }
+  .f-hint { font-size: 12px; color: var(--muted); font-weight: 400; margin-left: 6px; }
+  input[type=text], input[type=date], input[type=number], select, textarea {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px;
+    font-size: 14px; background: #FBFBFC; color: var(--ink); font-family: inherit;
+  }
+  input[type=file] { width: 100%; font-size: 13px; padding: 9px 0; }
+  textarea { resize: vertical; min-height: 64px; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-light); }
+
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  @media (max-width: 700px) { .row2, .row3 { grid-template-columns: 1fr; } .main { padding: 24px 18px 60px; } }
+
+  .auto-tag { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--teal-dark); background: var(--teal-light); padding: 4px 10px; border-radius: 20px; font-weight: 600; margin-bottom: 16px; }
+
+  .skip-section { margin-top: 18px; padding: 16px 18px; border-radius: var(--radius); background: var(--amber-light); border: 1px solid var(--amber-line); }
+  .skip-section .tag { font-size: 11.5px; font-weight: 700; color: var(--amber); text-transform: uppercase; letter-spacing: 0.04em; display: flex; align-items: center; gap: 6px; }
+  .skip-section label.f-label { color: var(--amber); }
+
+  .btn { display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--line); background: var(--card); color: var(--ink); font-size: 13.5px; font-weight: 600; padding: 9px 16px; border-radius: 8px; cursor: pointer; font-family: inherit; }
+  .btn:hover { background: #F9FAFB; }
+  .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-danger { color: var(--danger); }
+  .btn-sm { padding: 6px 12px; font-size: 12.5px; }
+  .btn:disabled { opacity: 0.55; cursor: default; }
+  .btn-full { width: 100%; justify-content: center; margin-top: 22px; padding: 12px; font-size: 14.5px; }
+
+  #formMsg { margin-top: 12px; font-size: 13px; font-weight: 500; }
+  #formMsg.ok { color: var(--teal-dark); }
+  #formMsg.err { color: var(--danger); }
+
+  /* Filters / table */
+  .filters { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+  .filters select, .filters input[type=text] { width: auto; min-width: 150px; }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th, td { text-align: left; padding: 12px 10px; border-bottom: 1px solid var(--line); }
+  th { color: var(--sub); font-weight: 600; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.03em; }
+  tbody tr:hover { background: #FAFAFB; }
+  td.name { font-weight: 500; }
+  a.file-link { color: var(--accent); text-decoration: none; }
+  a.file-link:hover { text-decoration: underline; }
+
+  select.inline-edit { border: 1px solid transparent; background: transparent; padding: 4px 6px; font-size: 13px; font-weight: 600; border-radius: 6px; }
+  select.inline-edit:hover { border-color: var(--line); background: #fff; }
+
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11.5px; font-weight: 600; }
+  .badge-teal { background: var(--teal-light); color: var(--teal-dark); }
+  .badge-gray { background: #EEF0F2; color: #555C68; }
+  .badge-amber { background: var(--amber-light); color: var(--amber); }
+
+  .empty { text-align: center; color: var(--sub); padding: 48px 0; font-size: 14px; }
+  .empty .material-symbols-outlined { font-size: 32px; color: var(--muted); display: block; margin: 0 auto 10px; }
+
+  #configWarning { background: var(--danger-light); border: 1px solid #F3ACAC; color: #8A1F1F; padding: 12px 16px; border-radius: 10px; font-size: 13px; margin-bottom: 20px; display: none; }
+  #configWarning code { background: rgba(0,0,0,0.06); padding: 1px 5px; border-radius: 4px; }
+
+  /* Skip trace tab */
+  .st-file { border: 1px solid var(--line); border-radius: var(--radius-lg); margin-bottom: 14px; overflow: hidden; }
+  .st-file-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; cursor: pointer; background: var(--card); }
+  .st-file-head:hover { background: #FAFAFB; }
+  .st-file-title { display: flex; align-items: center; gap: 12px; }
+  .st-file-title .material-symbols-outlined { color: var(--accent); }
+  .st-file-name { font-weight: 600; font-size: 14.5px; }
+  .st-file-meta { font-size: 12.5px; color: var(--sub); margin-top: 2px; }
+  .st-file-body { display: none; border-top: 1px solid var(--line); padding: 18px 20px; background: #FCFCFD; }
+  .st-file-body.open { display: block; }
+  .st-progress-table { width: 100%; font-size: 13px; margin-bottom: 16px; }
+  .st-progress-table th, .st-progress-table td { padding: 8px 6px; }
+  .st-add-form { display: grid; grid-template-columns: 1fr 1fr 2fr auto; gap: 10px; align-items: end; }
+  @media (max-width: 700px) { .st-add-form { grid-template-columns: 1fr 1fr; } }
+  .st-add-form label.f-label { margin: 0 0 5px; }
+
+  /* Settings modal */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(20,23,31,0.45); z-index: 50; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--card); border-radius: var(--radius-lg); padding: 24px 26px; width: 560px; max-width: 92vw; max-height: 84vh; overflow-y: auto; }
+  .modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+  .modal-head h2 { font-size: 17px; font-weight: 700; margin: 0; }
+  .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 560px) { .settings-grid { grid-template-columns: 1fr; } }
+  .opt-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+  .opt-row { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; }
+  .opt-row input[type=text] { border: none; background: transparent; padding: 2px 4px; }
+  .opt-row .material-symbols-outlined { color: var(--muted); cursor: pointer; font-size: 18px; }
+  .opt-row .material-symbols-outlined:hover { color: var(--danger); }
+  .opt-add { display: flex; gap: 8px; }
+  .opt-sub { font-weight: 600; font-size: 13.5px; margin-bottom: 10px; }
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="brand"><div class="mark">LT</div><span class="title">List tracker</span></div>
+  <div class="nav-item active" data-page="dashboard"><span class="material-symbols-outlined">dashboard</span>Dashboard</div>
+  <div class="nav-item" data-page="files"><span class="material-symbols-outlined">folder_open</span>All files</div>
+  <div class="nav-item" data-page="skiptrace"><span class="material-symbols-outlined">call</span>Skip trace</div>
+  <div class="nav-spacer"></div>
+  <div class="sidebar-foot">No login required — shared team link</div>
+</div>
+
+<div class="main">
+  <div id="configWarning">
+    Supabase isn't configured. Open <code>index.html</code> and set <code>SUPABASE_URL</code> / <code>SUPABASE_ANON_KEY</code> near the bottom of the script.
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="page active" id="page-dashboard">
+    <div class="page-head">
+      <div><h1>Dashboard</h1><p>Submit a file and see your team's activity at a glance</p></div>
+      <div class="icon-btn" id="openSettings" title="Manage status and file type options" style="width:auto; gap:6px; padding:0 14px;"><span class="material-symbols-outlined">tune</span><span style="font-size:13px; font-weight:600;">Manage options</span></div>
+    </div>
+
+    <div class="metrics">
+      <div class="metric"><div class="m-label"><span class="material-symbols-outlined">description</span>Total files</div><div class="m-value" id="m-total">–</div></div>
+      <div class="metric"><div class="m-label"><span class="material-symbols-outlined">filter_alt</span>Filtered</div><div class="m-value" id="m-filtered">–</div></div>
+      <div class="metric"><div class="m-label"><span class="material-symbols-outlined">call</span>Skip traced</div><div class="m-value" id="m-skip">–</div></div>
+      <div class="metric"><div class="m-label"><span class="material-symbols-outlined">check_circle</span>Skip trace complete</div><div class="m-value" id="m-skip-done">–</div></div>
+    </div>
+
+    <div class="card" style="margin-bottom:20px;">
+      <div class="section-title"><span class="material-symbols-outlined">upload_file</span>Submit a file</div>
+      <div class="auto-tag"><span class="material-symbols-outlined" style="font-size:16px; vertical-align:-3px;">schedule</span>Entry date is recorded automatically</div>
+      <form id="submitForm">
+        <div class="row2">
+          <div>
+            <label class="f-label">Your name</label>
+            <input type="text" id="name" required placeholder="Jane Smith">
+          </div>
+          <div>
+            <label class="f-label">File name <span class="f-hint">(defaults to the uploaded file's name)</span></label>
+            <input type="text" id="displayName" placeholder="e.g. PG County probate list">
+          </div>
+        </div>
+
+        <div class="row2">
+          <div>
+            <label class="f-label">File</label>
+            <input type="file" id="file" accept=".xlsx,.xls,.csv" required>
+          </div>
+          <div>
+            <label class="f-label">File type</label>
+            <select id="fileType" required></select>
+          </div>
+        </div>
+
+        <label class="f-label">Status</label>
+        <select id="status" required></select>
+
+        <label class="f-label">Skiptraced? <span style="color:var(--danger)">*</span></label>
+        <select id="skiptraced" required>
+          <option value="">Select one</option>
+          <option value="yes">Yes</option>
+          <option value="no">No</option>
+        </select>
+
+        <div class="skip-section" id="skipSection" style="display:none;">
+          <div class="tag"><span class="material-symbols-outlined" style="font-size:15px; vertical-align:-3px;">call</span>Skip trace details</div>
+          <div class="row2">
+            <div>
+              <label class="f-label">Source / list name</label>
+              <input type="text" id="source" placeholder="e.g. PG County probate list">
+            </div>
+            <div>
+              <label class="f-label">Cost ($)</label>
+              <input type="number" id="cost" min="0" step="0.01" placeholder="e.g. 120.00">
+            </div>
+          </div>
+          <label class="f-label">Notes</label>
+          <textarea id="notes" placeholder="Anything else worth recording"></textarea>
+          <div class="f-hint" style="display:block; margin-top:8px;">This file will automatically appear in the Skip trace tab, where you can log outreach progress over time.</div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full" id="submitBtn">Submit file</button>
+        <div id="formMsg"></div>
+      </form>
+    </div>
+
+    <div class="card">
+      <div class="section-title"><span class="material-symbols-outlined">history</span>Recently submitted</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>File</th><th>Submitted by</th><th>Entry date</th><th>Status</th></tr></thead>
+          <tbody id="dashRecent"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ALL FILES -->
+  <div class="page" id="page-files">
+    <div class="page-head"><div><h1>All files</h1><p>Every file your team has logged</p></div></div>
+    <div class="filters">
+      <input type="text" id="searchBox" placeholder="Search name or submitter">
+      <select id="filterStatus"><option value="">All statuses</option></select>
+      <select id="filterType"><option value="">All file types</option></select>
+      <select id="filterSkip">
+        <option value="">Skiptraced: all</option>
+        <option value="yes">Skiptraced: yes</option>
+        <option value="no">Skiptraced: no</option>
+      </select>
+      <input type="date" id="filterDateFrom" title="From date" style="min-width:130px;">
+      <input type="date" id="filterDateTo" title="To date" style="min-width:130px;">
+      <button class="btn btn-sm" id="clearDateBtn">Clear dates</button>
+      <button class="btn btn-sm" id="refreshBtn"><span class="material-symbols-outlined" style="font-size:16px; vertical-align:-3px;">refresh</span>Refresh</button>
+    </div>
+    <div class="f-hint" style="margin:-8px 0 14px;">Use the same date in both fields to filter a single day, or set both for a range.</div>
+    <div class="card table-wrap" style="padding:0;">
+      <table id="logTable">
+        <thead><tr><th>File</th><th>Submitted by</th><th>Type</th><th>Entry date</th><th>Status</th><th>Skiptraced</th><th></th></tr></thead>
+        <tbody id="logBody"></tbody>
+      </table>
+      <div class="empty" id="emptyMsg" style="display:none;"><span class="material-symbols-outlined">folder_off</span>No files yet. Submit one from the Dashboard to get started.</div>
+    </div>
+  </div>
+
+  <!-- SKIP TRACE -->
+  <div class="page" id="page-skiptrace">
+    <div class="page-head"><div><h1>Skip trace</h1><p>Track outreach progress for skiptraced files</p></div></div>
+    <div id="stList"></div>
+    <div class="empty" id="stEmpty" style="display:none;"><span class="material-symbols-outlined">call</span>No skiptraced files yet.</div>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>Manage dropdown options</h2>
+      <div class="icon-btn" id="closeSettings"><span class="material-symbols-outlined">close</span></div>
+    </div>
+    <div class="settings-grid">
+      <div>
+        <div class="opt-sub">Status options</div>
+        <div class="opt-list" id="statusList"></div>
+        <div class="opt-add">
+          <input type="text" id="newStatus" placeholder="New status name">
+          <button class="btn btn-primary btn-sm" id="addStatusBtn">Add</button>
+        </div>
+      </div>
+      <div>
+        <div class="opt-sub">File type options</div>
+        <div class="opt-list" id="typeList"></div>
+        <div class="opt-add">
+          <input type="text" id="newType" placeholder="New file type name">
+          <button class="btn btn-primary btn-sm" id="addTypeBtn">Add</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js" onerror="window.__supabaseLoadFailed = true;"></script>
+<script>
+  // ---- CONFIGURE THIS ----
+  const SUPABASE_URL = "https://jwctfsapxrdzznjaaufo.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp3Y3Rmc2FweHJkenpuamFhdWZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwNTg0ODksImV4cCI6MjA5NjYzNDQ4OX0._9XUgB2K2O_JlDJgWM_Br_KLqJRVKxKnct7dR-pvMHk";
+  // -------------------------
+
+  const isConfigured = !SUPABASE_URL.includes("YOUR_") && !SUPABASE_ANON_KEY.includes("YOUR_");
+  let supabase = null;
+  let supabaseInitError = null;
+
+  try {
+    if (window.__supabaseLoadFailed || typeof window.supabase === 'undefined') {
+      throw new Error('The database library failed to load from the CDN. This is usually caused by an ad-blocker, browser extension, or restrictive network — try disabling extensions or using a different browser/network, then refresh.');
+    }
+    if (isConfigured) {
+      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+  } catch (err) {
+    supabaseInitError = err.message;
+    console.error('Supabase init failed:', err);
+  }
+
+  if (!isConfigured) {
+    document.getElementById('configWarning').style.display = 'block';
+  } else if (supabaseInitError) {
+    const warn = document.getElementById('configWarning');
+    warn.innerHTML = '<strong>Could not connect to the database:</strong> ' + supabaseInitError;
+    warn.style.display = 'block';
+  }
+  const BUCKET = "team-files";
+
+  // ---------- Navigation ----------
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      item.classList.add('active');
+      document.getElementById('page-' + item.dataset.page).classList.add('active');
+      if (item.dataset.page === 'files') loadSubmissions();
+      if (item.dataset.page === 'dashboard') loadDashboard();
+      if (item.dataset.page === 'skiptrace') loadSkiptrace();
+    });
+  });
+
+  // ---------- Settings modal ----------
+  document.getElementById('openSettings').addEventListener('click', () => {
+    document.getElementById('settingsModal').classList.add('open');
+    loadOptions();
+  });
+  document.getElementById('closeSettings').addEventListener('click', () => {
+    document.getElementById('settingsModal').classList.remove('open');
+    loadOptionData().then(() => { if (document.getElementById('page-dashboard').classList.contains('active')) loadDashboard(); });
+  });
+  document.getElementById('settingsModal').addEventListener('click', (e) => {
+    if (e.target.id === 'settingsModal') document.getElementById('closeSettings').click();
+  });
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str == null ? '' : str;
+    return div.innerHTML;
+  }
+  function fmtDate(d) {
+    if (!d) return '–';
+    return new Date(d).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+  }
+
+  // ---------- Options (statuses / file types) ----------
+  let statusOptions = [];
+  let typeOptions = [];
+
+  async function loadOptionData() {
+    if (!isConfigured || !supabase) return;
+    try {
+      const [{ data: s, error: sErr }, { data: t, error: tErr }] = await Promise.all([
+        supabase.from('statuses').select('*').order('sort_order'),
+        supabase.from('file_types').select('*').order('sort_order')
+      ]);
+      if (sErr) console.error('statuses load error:', sErr);
+      if (tErr) console.error('file_types load error:', tErr);
+      statusOptions = s || [];
+      typeOptions = t || [];
+      populateSelects();
+    } catch (err) {
+      console.error('loadOptionData failed:', err);
+    }
+  }
+
+  function populateSelects() {
+    const statusSelects = [document.getElementById('status'), document.getElementById('filterStatus')];
+    const typeSelects = [document.getElementById('fileType'), document.getElementById('filterType')];
+    statusSelects.forEach((sel, i) => {
+      const keepFirst = i === 1;
+      sel.innerHTML = (keepFirst ? '<option value="">All statuses</option>' : '') +
+        statusOptions.map(o => `<option value="${escapeHtml(o.label)}">${escapeHtml(o.label)}</option>`).join('') +
+        (keepFirst ? '' : '<option value="__add_new__">+ Add new status…</option>');
+    });
+    typeSelects.forEach((sel, i) => {
+      const keepFirst = i === 1;
+      sel.innerHTML = (keepFirst ? '<option value="">All file types</option>' : '') +
+        typeOptions.map(o => `<option value="${escapeHtml(o.label)}">${escapeHtml(o.label)}</option>`).join('') +
+        (keepFirst ? '' : '<option value="__add_new__">+ Add new file type…</option>');
+    });
+  }
+
+  async function handleInlineAdd(selectEl, table, refreshList) {
+    selectEl.addEventListener('change', async () => {
+      if (selectEl.value !== '__add_new__') return;
+      const label = prompt('Enter the new ' + (table === 'statuses' ? 'status' : 'file type') + ' name:');
+      selectEl.value = '';
+      if (!label || !label.trim()) return;
+      const existing = table === 'statuses' ? statusOptions : typeOptions;
+      await supabase.from(table).insert({ label: label.trim(), sort_order: existing.length });
+      await loadOptionData();
+      selectEl.value = label.trim();
+    });
+  }
+
+  async function loadOptions() {
+    await loadOptionData();
+    renderOptionList('statusList', statusOptions, 'statuses');
+    renderOptionList('typeList', typeOptions, 'file_types');
+  }
+
+  function renderOptionList(containerId, list, table) {
+    const el = document.getElementById(containerId);
+    el.innerHTML = '';
+    list.forEach(o => {
+      const row = document.createElement('div');
+      row.className = 'opt-row';
+      row.innerHTML = `
+        <input type="text" value="${escapeHtml(o.label)}" data-id="${o.id}" data-table="${table}">
+        <span class="material-symbols-outlined" data-action="delete" data-id="${o.id}" data-table="${table}">delete</span>
+      `;
+      el.appendChild(row);
+    });
+    el.querySelectorAll('input[type=text]').forEach(inp => {
+      inp.addEventListener('change', async () => {
+        await supabase.from(inp.dataset.table).update({ label: inp.value.trim() }).eq('id', inp.dataset.id);
+        await loadOptions();
+      });
+    });
+    el.querySelectorAll('[data-action=delete]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        await supabase.from(btn.dataset.table).delete().eq('id', btn.dataset.id);
+        await loadOptions();
+      });
+    });
+  }
+
+  document.getElementById('addStatusBtn').addEventListener('click', async () => {
+    const input = document.getElementById('newStatus');
+    if (!input.value.trim()) return;
+    await supabase.from('statuses').insert({ label: input.value.trim(), sort_order: statusOptions.length });
+    input.value = '';
+    await loadOptions();
+  });
+  document.getElementById('addTypeBtn').addEventListener('click', async () => {
+    const input = document.getElementById('newType');
+    if (!input.value.trim()) return;
+    await supabase.from('file_types').insert({ label: input.value.trim(), sort_order: typeOptions.length });
+    input.value = '';
+    await loadOptions();
+  });
+
+  // ---------- Skiptrace toggle on submit form ----------
+  document.getElementById('skiptraced').addEventListener('change', (e) => {
+    document.getElementById('skipSection').style.display = e.target.value === 'yes' ? 'block' : 'none';
+  });
+
+  handleInlineAdd(document.getElementById('status'), 'statuses');
+  handleInlineAdd(document.getElementById('fileType'), 'file_types');
+
+  // ---------- Submit form ----------
+  document.getElementById('submitForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById('formMsg');
+    const btn = document.getElementById('submitBtn');
+    msg.textContent = ''; msg.className = '';
+
+    if (!isConfigured || !supabase) { msg.textContent = 'Supabase is not configured yet.'; msg.className = 'err'; return; }
+
+    const fileInput = document.getElementById('file');
+    const file = fileInput.files[0];
+    if (!file) { msg.textContent = 'Please choose a file.'; msg.className = 'err'; return; }
+
+    const skiptraced = document.getElementById('skiptraced').value === 'yes';
+    btn.disabled = true; btn.textContent = 'Uploading...';
+
+    try {
+      const path = `${Date.now()}_${file.name}`.replace(/\s+/g, '_');
+      const { error: uploadErr } = await supabase.storage.from(BUCKET).upload(path, file);
+      if (uploadErr) throw uploadErr;
+
+      const record = {
+        submitter_name: document.getElementById('name').value.trim(),
+        file_name: document.getElementById('displayName').value.trim() || file.name,
+        file_type: document.getElementById('fileType').value,
+        file_path: path,
+        status: document.getElementById('status').value,
+        skiptraced: skiptraced,
+        skiptrace_source: skiptraced ? (document.getElementById('source').value || null) : null,
+        skiptrace_cost: skiptraced ? (document.getElementById('cost').value || null) : null,
+        skiptrace_notes: skiptraced ? (document.getElementById('notes').value || null) : null,
+      };
+
+      const { error: insertErr } = await supabase.from('submissions').insert(record);
+      if (insertErr) throw insertErr;
+
+      msg.textContent = 'File submitted.';
+      msg.className = 'ok';
+      e.target.reset(); // clears name, displayName, file, and skiptrace fields
+      document.getElementById('skipSection').style.display = 'none';
+      loadDashboard();
+    } catch (err) {
+      msg.textContent = 'Something went wrong: ' + (err.message || err);
+      msg.className = 'err';
+    } finally {
+      btn.disabled = false; btn.textContent = 'Submit file';
+    }
+  });
+
+  // ---------- Dashboard ----------
+  async function loadDashboard() {
+    if (!isConfigured || !supabase) return;
+    const { data } = await supabase.from('submissions').select('*').order('created_at', { ascending: false });
+    const rows = data || [];
+    document.getElementById('m-total').textContent = rows.length;
+    document.getElementById('m-filtered').textContent = rows.filter(r => r.status === 'Filtered').length;
+    document.getElementById('m-skip').textContent = rows.filter(r => r.skiptraced).length;
+    document.getElementById('m-skip-done').textContent = rows.filter(r => r.skiptraced && r.skiptrace_complete).length;
+
+    const body = document.getElementById('dashRecent');
+    body.innerHTML = rows.slice(0, 6).map(r => `
+      <tr>
+        <td class="name">${escapeHtml(r.file_name)}</td>
+        <td>${escapeHtml(r.submitter_name)}</td>
+        <td>${fmtDate(r.created_at)}</td>
+        <td><span class="badge badge-gray">${escapeHtml(r.status)}</span></td>
+      </tr>
+    `).join('') || '<tr><td colspan="4" style="color:var(--sub); text-align:center; padding:24px;">No files submitted yet.</td></tr>';
+  }
+
+  // ---------- All files ----------
+  let allRows = [];
+
+  async function loadSubmissions() {
+    if (!isConfigured || !supabase) return;
+    await loadOptionData();
+    const { data, error } = await supabase.from('submissions').select('*').order('created_at', { ascending: false });
+    if (error) { console.error(error); return; }
+    allRows = data || [];
+    renderTable();
+  }
+
+  function renderTable() {
+    const search = document.getElementById('searchBox').value.toLowerCase();
+    const statusFilter = document.getElementById('filterStatus').value;
+    const typeFilter = document.getElementById('filterType').value;
+    const skipFilter = document.getElementById('filterSkip').value;
+    const dateFrom = document.getElementById('filterDateFrom').value;
+    const dateTo = document.getElementById('filterDateTo').value;
+
+    const filtered = allRows.filter(r => {
+      if (statusFilter && r.status !== statusFilter) return false;
+      if (typeFilter && r.file_type !== typeFilter) return false;
+      if (skipFilter === 'yes' && !r.skiptraced) return false;
+      if (skipFilter === 'no' && r.skiptraced) return false;
+      if (search && !(r.file_name.toLowerCase().includes(search) || r.submitter_name.toLowerCase().includes(search))) return false;
+      if (dateFrom || dateTo) {
+        const entryDate = r.created_at ? r.created_at.slice(0, 10) : null;
+        if (!entryDate) return false;
+        if (dateFrom && entryDate < dateFrom) return false;
+        if (dateTo && entryDate > dateTo) return false;
+      }
+      return true;
+    });
+
+    const body = document.getElementById('logBody');
+    body.innerHTML = '';
+    document.getElementById('emptyMsg').style.display = filtered.length ? 'none' : 'block';
+
+    filtered.forEach(r => {
+      const tr = document.createElement('tr');
+      const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(r.file_path);
+      tr.innerHTML = `
+        <td class="name"><a class="file-link" href="${urlData.publicUrl}" target="_blank">${escapeHtml(r.file_name)}</a></td>
+        <td>${escapeHtml(r.submitter_name)}</td>
+        <td>${escapeHtml(r.file_type)}</td>
+        <td>${fmtDate(r.created_at)}</td>
+        <td>
+          <select class="inline-edit" data-id="${r.id}" data-field="status">
+            ${statusOptions.map(o => `<option value="${escapeHtml(o.label)}" ${o.label === r.status ? 'selected' : ''}>${escapeHtml(o.label)}</option>`).join('')}
+          </select>
+        </td>
+        <td><span class="badge ${r.skiptraced ? 'badge-amber' : 'badge-gray'}">${r.skiptraced ? 'Yes' : 'No'}</span></td>
+        <td><span class="material-symbols-outlined" style="cursor:pointer; color:var(--muted);" data-action="delete-row" data-id="${r.id}">delete</span></td>
+      `;
+      body.appendChild(tr);
+    });
+
+    body.querySelectorAll('select.inline-edit').forEach(sel => {
+      sel.addEventListener('change', async () => {
+        await supabase.from('submissions').update({ [sel.dataset.field]: sel.value }).eq('id', sel.dataset.id);
+        loadSubmissions();
+      });
+    });
+    body.querySelectorAll('[data-action=delete-row]').forEach(el => {
+      el.addEventListener('click', async () => {
+        if (!confirm('Delete this file record?')) return;
+        await supabase.from('submissions').delete().eq('id', el.dataset.id);
+        loadSubmissions();
+      });
+    });
+  }
+
+  document.getElementById('searchBox').addEventListener('input', renderTable);
+  document.getElementById('filterStatus').addEventListener('change', renderTable);
+  document.getElementById('filterType').addEventListener('change', renderTable);
+  document.getElementById('filterSkip').addEventListener('change', renderTable);
+  document.getElementById('filterDateFrom').addEventListener('change', renderTable);
+  document.getElementById('filterDateTo').addEventListener('change', renderTable);
+  document.getElementById('clearDateBtn').addEventListener('click', (e) => {
+    e.preventDefault();
+    document.getElementById('filterDateFrom').value = '';
+    document.getElementById('filterDateTo').value = '';
+    renderTable();
+  });
+  document.getElementById('refreshBtn').addEventListener('click', (e) => { e.preventDefault(); loadSubmissions(); });
+
+  // ---------- Skip trace ----------
+  async function loadSkiptrace() {
+    if (!isConfigured || !supabase) return;
+    const { data: subs } = await supabase.from('submissions').select('*').eq('skiptraced', true).order('created_at', { ascending: false });
+    const rows = subs || [];
+    document.getElementById('stEmpty').style.display = rows.length ? 'none' : 'block';
+
+    const list = document.getElementById('stList');
+    list.innerHTML = '';
+
+    for (const r of rows) {
+      const { data: progress } = await supabase.from('skiptrace_progress').select('*').eq('submission_id', r.id).order('contacted_at', { ascending: false });
+      const entries = progress || [];
+
+      const wrap = document.createElement('div');
+      wrap.className = 'st-file';
+      wrap.innerHTML = `
+        <div class="st-file-head" data-toggle="${r.id}">
+          <div class="st-file-title">
+            <span class="material-symbols-outlined">description</span>
+            <div>
+              <div class="st-file-name">${escapeHtml(r.file_name)}</div>
+              <div class="st-file-meta">${escapeHtml(r.submitter_name)} · ${escapeHtml(r.skiptrace_source || 'no source listed')} · ${entries.length} progress ${entries.length === 1 ? 'entry' : 'entries'}</div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span class="badge ${r.skiptrace_complete ? 'badge-teal' : 'badge-amber'}">${r.skiptrace_complete ? 'Complete' : 'In progress'}</span>
+            <span class="material-symbols-outlined">expand_more</span>
+          </div>
+        </div>
+        <div class="st-file-body" id="st-body-${r.id}">
+          <table class="st-progress-table">
+            <thead><tr><th>Date</th><th>Leads contacted</th><th>Notes</th></tr></thead>
+            <tbody>
+              ${entries.map(en => `<tr><td>${fmtDate(en.contacted_at)}</td><td>${en.range_start ?? '–'}–${en.range_end ?? '–'}</td><td>${escapeHtml(en.notes || '')}</td></tr>`).join('') || '<tr><td colspan="3" style="color:var(--sub);">No progress logged yet.</td></tr>'}
+            </tbody>
+          </table>
+          <label class="f-label">Log outreach progress</label>
+          <div class="st-add-form">
+            <div><input type="number" min="0" placeholder="From" id="from-${r.id}"></div>
+            <div><input type="number" min="0" placeholder="To" id="to-${r.id}"></div>
+            <div><input type="text" placeholder="Notes" id="notes-${r.id}"></div>
+            <button class="btn btn-primary btn-sm" data-add="${r.id}">Add entry</button>
+          </div>
+          <div style="margin-top:14px; display:flex; gap:10px;">
+            <button class="btn btn-sm" data-complete="${r.id}" data-current="${r.skiptrace_complete}">
+              <span class="material-symbols-outlined" style="font-size:16px; vertical-align:-3px;">check_circle</span>
+              ${r.skiptrace_complete ? 'Mark as in progress' : 'Mark complete'}
+            </button>
+          </div>
+        </div>
+      `;
+      list.appendChild(wrap);
+    }
+
+    list.querySelectorAll('[data-toggle]').forEach(head => {
+      head.addEventListener('click', () => {
+        document.getElementById('st-body-' + head.dataset.toggle).classList.toggle('open');
+      });
+    });
+    list.querySelectorAll('[data-add]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.dataset.add;
+        const from = document.getElementById('from-' + id).value || null;
+        const to = document.getElementById('to-' + id).value || null;
+        const notes = document.getElementById('notes-' + id).value || null;
+        await supabase.from('skiptrace_progress').insert({ submission_id: id, range_start: from, range_end: to, notes: notes });
+        loadSkiptrace();
+      });
+    });
+    list.querySelectorAll('[data-complete]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.dataset.complete;
+        const current = btn.dataset.current === 'true';
+        await supabase.from('submissions').update({ skiptrace_complete: !current }).eq('id', id);
+        loadSkiptrace();
+      });
+    });
+  }
+
+  // ---------- init ----------
+  loadOptionData();
+  loadDashboard();
+</script>
+</body>
+</html>
