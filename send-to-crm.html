@@ -42,21 +42,26 @@
   var qs = new URLSearchParams(location.search);
   var secret = qs.get('secret') || '';
   var contactId = qs.get('contactId') || qs.get('contact_id') || '';
+  var conversationId = qs.get('conversationId') || qs.get('conversation_id') || '';
+  var resolvedId = contactId;
   function $(id){return document.getElementById(id)}
   function show(cls,txt){var m=$('msg');m.className='msg '+cls;m.textContent=txt}
   $('date').value = new Date().toISOString().slice(0,10);
   (async function(){
     try{
-      if(!contactId){ $('sub').textContent='New lead — fill in the details below.'; return; }
-      var r = await fetch(FUNC+'?action=contact&contactId='+encodeURIComponent(contactId)+'&secret='+encodeURIComponent(secret));
+      if(!contactId && !conversationId){ $('sub').textContent='New lead — fill in the details below.'; return; }
+      var q = FUNC+'?action=contact&secret='+encodeURIComponent(secret);
+      if(contactId) q += '&contactId='+encodeURIComponent(contactId);
+      if(conversationId) q += '&conversationId='+encodeURIComponent(conversationId);
+      var r = await fetch(q);
       var j = await r.json();
-      if(j && j.ok){ $('name').value=j.name||''; $('phone').value=j.phone||''; if(j.address) $('address').value=j.address; $('sub').textContent='Check the details, add address & notes, then Send Task.'; }
+      if(j && j.ok){ if(j.contactId) resolvedId=j.contactId; $('name').value=j.name||''; $('phone').value=j.phone||''; if(j.address) $('address').value=j.address; $('sub').textContent = (j.name||j.phone) ? 'Check the details, add address & notes, then Send Task.' : 'Could not auto-load this contact — fill in the details below.'; }
       else { $('sub').textContent='Fill in the details below.'; }
     }catch(e){ $('sub').textContent='Fill in the details below.'; }
   })();
   $('f').addEventListener('submit', async function(){
     var btn=$('btn'); btn.disabled=true; show('info','Sending…');
-    var payload={ contactId:contactId, name:$('name').value.trim(), phone:$('phone').value.trim(), address:$('address').value.trim(), notes:$('notes').value.trim(), date:$('date').value, follow_up_date:$('followup').value };
+    var payload={ contactId:resolvedId, conversationId:conversationId, name:$('name').value.trim(), phone:$('phone').value.trim(), address:$('address').value.trim(), notes:$('notes').value.trim(), date:$('date').value, follow_up_date:$('followup').value };
     try{
       var r = await fetch(FUNC+'?action=save&secret='+encodeURIComponent(secret), {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
       var j = await r.json();
