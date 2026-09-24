@@ -9,8 +9,8 @@
   h1{font-size:18px;margin:0 0 2px}
   .sub{color:var(--muted);font-size:13px;margin:0 0 16px}
   label{display:block;font-weight:600;font-size:12.5px;color:var(--muted);margin:12px 0 5px;text-transform:uppercase;letter-spacing:.03em}
-  input,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:9px;font:inherit;background:#fff;color:var(--text)}
-  input:focus,textarea:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+  input,textarea,select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:9px;font:inherit;background:#fff;color:var(--text)}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
   textarea{min-height:84px;resize:vertical}
   .row{display:flex;gap:10px}.row>div{flex:1}
   button{width:100%;margin-top:18px;padding:13px;border:0;border-radius:10px;background:var(--brand);color:var(--brandink);font-weight:700;font-size:15px;cursor:pointer}
@@ -28,6 +28,10 @@
     <label>Name</label><input id="name" autocomplete="off">
     <label>Phone</label><input id="phone" autocomplete="off">
     <label>Address</label><input id="address" placeholder="Paste the property address from the text…" autocomplete="off">
+    <div class="row">
+      <div><label>Lead Temperature</label><select id="score"><option value="">— Not set —</option><option value="Hot">🔴 Hot</option><option value="Warm">🟡 Warm</option><option value="Cold">🔵 Cold</option></select></div>
+      <div><label>Lead Status</label><select id="status"><option value="">— Select —</option></select></div>
+    </div>
     <label>Notes</label><textarea id="notes" placeholder="Anything useful from the conversation…"></textarea>
     <div class="row">
       <div><label>Entry date</label><input id="date" type="date"></div>
@@ -47,6 +51,13 @@
   function $(id){return document.getElementById(id)}
   function show(cls,txt){var m=$('msg');m.className='msg '+cls;m.textContent=txt}
   $('date').value = new Date().toISOString().slice(0,10);
+  // Same status list the CRM Tasks tab uses (shared localStorage on this github.io origin), else CRM defaults.
+  (function(){
+    var s=null; try{ s=JSON.parse(localStorage.getItem('crm_jv_statuses')||'null'); }catch(e){}
+    if(!Array.isArray(s)||!s.length) s=['New','Contacted','Follow Up','Under Contract','Offer Sent','Closed','Pass'];
+    ['MLS Realtor','Owner'].forEach(function(x){ if(s.indexOf(x)<0) s.push(x); });
+    s.forEach(function(v){ var o=document.createElement('option'); o.value=v; o.textContent=v; $('status').appendChild(o); });
+  })();
   (async function(){
     try{
       if(!contactId && !conversationId){ $('sub').textContent='New lead — fill in the details below.'; return; }
@@ -61,12 +72,12 @@
   })();
   $('f').addEventListener('submit', async function(){
     var btn=$('btn'); btn.disabled=true; show('info','Sending…');
-    var payload={ contactId:resolvedId, conversationId:conversationId, name:$('name').value.trim(), phone:$('phone').value.trim(), address:$('address').value.trim(), notes:$('notes').value.trim(), date:$('date').value, follow_up_date:$('followup').value };
+    var payload={ contactId:resolvedId, conversationId:conversationId, name:$('name').value.trim(), phone:$('phone').value.trim(), address:$('address').value.trim(), notes:$('notes').value.trim(), score:$('score').value, jv_status:$('status').value, date:$('date').value, follow_up_date:$('followup').value };
     try{
       var r = await fetch(FUNC+'?action=save&secret='+encodeURIComponent(secret), {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
       var j = await r.json();
-      if(j.ok && j.action==='created'){ document.getElementById('card').classList.add('done'); $('sub').style.display='none'; show('ok','✅ Sent to CRM as lead #'+j.id+'. You can close this window.'); $('f').querySelectorAll('input,textarea,button').forEach(function(el){el.disabled=true}); }
-      else if(j.ok && j.action==='exists'){ show('info','ℹ️ This contact is already in the CRM (lead #'+j.id+'). Not added again.'); btn.disabled=false; }
+      if(j.ok && j.action==='created'){ document.getElementById('card').classList.add('done'); $('sub').style.display='none'; show('ok','✅ Sent to CRM as lead #'+j.id+'. You can close this window.'); $('f').querySelectorAll('input,textarea,select,button').forEach(function(el){el.disabled=true}); }
+      else if(j.ok && j.action==='exists'){ show('info','ℹ️ This contact is already in the CRM (lead #'+j.id+'). Not added again'+(j.updated?' — updated its '+j.updated+'.':'.')); btn.disabled=false; }
       else { show('err','Could not send: '+(j.reason||'error')); btn.disabled=false; }
     }catch(e){ show('err','Network error — try again.'); btn.disabled=false; }
   });
